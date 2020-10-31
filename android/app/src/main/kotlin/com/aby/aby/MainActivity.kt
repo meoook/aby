@@ -1,0 +1,6 @@
+package com.aby.aby
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity() {
+}
