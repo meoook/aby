@@ -5,9 +5,12 @@ extension StringExtension on String {
 }
 
 double getSizeFromWidth(width) {
-  if (width > 1000) return 40.0;
-  if (width > 800) return 32.0;
-  return 24.0;
+  const double _sizeBasis = 24.0;
+  const double _sizeStep = 8.0;
+  if (width > 1200) return _sizeStep * 3 + _sizeBasis;
+  if (width > 900) return _sizeStep * 2 + _sizeBasis;
+  if (width > 600) return _sizeStep + _sizeBasis;
+  return _sizeBasis;
 }
 
 String getStringDate(DateTime date) => '${date.day}.${date.month}.${date.year}';

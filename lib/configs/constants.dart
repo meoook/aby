@@ -17,5 +17,6 @@ const Color backgroundColor = Color(0xFF28292E);
 const Color ancientColor = Colors.red;
 
 // API configs
-const String apiUrlAddress = 'http://91.225.238.193:8000/api';
+// const String apiUrlAddress = 'http://91.225.238.193:8000/api';
+const String apiUrlAddress = 'http://127.0.0.1:8000/api';
 // OAuth configs

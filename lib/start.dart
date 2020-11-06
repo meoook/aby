@@ -17,7 +17,6 @@ class _StartAppControllerState extends State<StartAppController> {
   @override
   void initState() {
     super.initState();
-    Provider.of<AuthUser>(context, listen: false).auth();
     Timer(
       Duration(seconds: 2),
       () => Navigator.of(context).pushReplacement(

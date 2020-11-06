@@ -1,4 +1,5 @@
 import 'package:aby/model/user.dart';
+import 'package:aby/widgets/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,36 +9,36 @@ import 'package:rive/rive.dart';
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: Text("Abyss localize"),
       ),
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                Expanded(
-                  child: SizedBox(),
-                  flex: 1,
+      drawer: width < 600.0 ? MenuDrawer() : null,
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: SizedBox(),
+                flex: 1,
+              ),
+              Container(
+                width: 350,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.0),
                 ),
-                Container(
-                  width: 400,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.0),
-                  ),
-                  child: LoginForm(),
-                ),
-                Expanded(
-                  child: SizedBox(),
-                  flex: 3,
-                ),
-              ],
-            ),
-          ],
-        ),
+                child: LoginForm(),
+              ),
+              Expanded(
+                child: SizedBox(),
+                flex: 3,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -82,11 +83,11 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
-  void fieldFocusChange(
-      BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
-    currentFocus.unfocus();
-    FocusScope.of(context).requestFocus(nextFocus);
-  }
+  // void fieldFocusChange(
+  //     BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
+  //   currentFocus.unfocus();
+  //   FocusScope.of(context).requestFocus(nextFocus);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +101,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
           const SizedBox(height: 60),
           TextFormField(
-            autovalidateMode: AutovalidateMode.always,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             textInputAction: TextInputAction.next,
             validator: (name) {
               Pattern pattern = r'^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$';
@@ -198,7 +199,8 @@ class _RiveLogoState extends State<RiveLogo> {
 
     if (file.import(bytes)) {
       // Select an animation by its name
-      setState(() => _artBoard = file.mainArtboard);
+      setState(() =>
+          _artBoard = file.mainArtboard..addController(SimpleAnimation('go')));
     }
   }
 

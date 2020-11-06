@@ -92,10 +92,7 @@ class BookRouterDelegate extends RouterDelegate<ProjectRoutePath>
       pages: [
         MaterialPage(
           key: ValueKey('BooksListPage'),
-          child: ProjectsListScreen(
-            projects: projects,
-            onTapped: _handleBookTapped,
-          ),
+          child: ProjectsListScreen(),
         ),
         if (show404)
           MaterialPage(key: ValueKey('UnknownPage'), child: UnknownScreen())

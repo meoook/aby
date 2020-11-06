@@ -1,11 +1,10 @@
+import 'package:aby/model/util.dart';
 import 'package:aby/screens/login.dart';
 import 'package:aby/screens/projects.dart';
 import 'package:aby/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'configs/constants.dart';
-import 'configs/theme.dart';
 import 'model/project.dart';
 import 'model/user.dart';
 
@@ -14,32 +13,37 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  List pages;
+  bool _onPopPage(Route<dynamic> route, dynamic result) {
+    pages.remove(route.settings);
+    return route.didPop(result);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthUser>(create: (_) => AuthUser()),
         ChangeNotifierProxyProvider<AuthUser, Projects>(
-          // create: (context) => Projects(),
-          create: (context) => null,
-          update: (context, user, projects) => Projects(user.token),
-          // update: (context, user, projects) => projects.setToken(user.token),
+          create: (_) => null,
+          update: (_, user, __) => Projects(user.token),
+        ),
+        ChangeNotifierProxyProvider<AuthUser, Utils>(
+          create: (_) => null,
+          update: (_, user, __) => Utils(user.token),
         ),
       ],
-      child: MaterialApp(
-        title: appTitle,
-        theme: applicationThemeDark,
-        home: AuthOrLogin(),
+      child: Navigator(
+        pages: [],
+        // onUnknownRoute: UnknownScreen(),
+        onPopPage: _onPopPage,
+        // child: MaterialApp(
+        //   title: appTitle,
+        //   theme: applicationThemeDark,
+        //   home: SafeArea(child: AuthOrLogin()),
+        // ),
       ),
     );
-    // return ChangeNotifierProvider(
-    //   create: (context) => AuthUser(),
-    //   child: MaterialApp(
-    //     title: appTitle,
-    //     theme: applicationThemeDark,
-    //     home: AuthOrLogin(),
-    //   ),
-    // );
   }
 }
 
@@ -51,16 +55,13 @@ class AuthOrLogin extends StatefulWidget {
 class _AuthOrLoginState extends State<AuthOrLogin> {
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthUser>();
     final projects = context.watch<Projects>();
-    // return Consumer<AuthUser>(builder: (context, user, child) {
-    if (user.token == null) return LoginScreen();
-    // if (user.user == null) {
-    //   user.auth();
-    // } else if (projects.list == null) {
-    //   print('WOWOWOW USER IS OK BUT LIST IS NULL');
-    // }
-    return (projects.list != null) ? ProjectsListScreen() : SplashScreen();
-    // });
+    final languages = context.select<Utils, List>((value) => value.languages);
+    return Consumer<AuthUser>(builder: (context, user, child) {
+      if (user.token == null) return LoginScreen();
+      return (projects.list != null && languages != null)
+          ? ProjectsListScreen()
+          : SplashScreen();
+    });
   }
 }

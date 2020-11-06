@@ -1,19 +1,17 @@
 import 'package:aby/model/navigation.dart';
 import 'package:aby/model/user.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart' as rive;
 
-class MenuDrawer extends StatelessWidget {
-  final String title;
-
-  MenuDrawer({Key key, this.title});
-
+class NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Drawer(
+    return Container(
+      width: 80.0,
+      height: double.maxFinite,
+      color: Theme.of(context).primaryColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -22,13 +20,13 @@ class MenuDrawer extends StatelessWidget {
             // Important: Remove any padding from the ListView.
             padding: EdgeInsets.zero,
             children: <Widget>[
-              _DrawerHead(),
+              _NavBarHead(),
               Container(
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: navItems.length,
                   itemBuilder: (context, index) {
-                    return _DrawerItem(
+                    return _NavItem(
                         title: navItems[index].title,
                         icon: navItems[index].icon);
                   },
@@ -41,7 +39,7 @@ class MenuDrawer extends StatelessWidget {
               shrinkWrap: true,
               itemCount: navItemsDefault.length,
               itemBuilder: (context, index) {
-                return _DrawerItem(
+                return _NavItem(
                     title: navItemsDefault[index].title,
                     icon: navItemsDefault[index].icon);
               },
@@ -53,25 +51,52 @@ class MenuDrawer extends StatelessWidget {
   }
 }
 
-class _DrawerHead extends StatelessWidget {
+// Nav Header
+class _NavBarHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return DrawerHeader(
+    return Container(
+      padding: EdgeInsets.only(top: 12.0, bottom: 8.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
             colors: <Color>[Colors.deepOrange, Colors.orangeAccent]),
       ),
-      child: Container(
+      child: Column(
+        children: [
+          Material(
+            borderRadius: BorderRadius.circular(25.0),
+            elevation: 12,
+            child: SizedBox(width: 50.0, height: 50.0, child: RivePerson()),
+          ),
+          const SizedBox(height: 4.0),
+          Text(context.select((AuthUser user) => user.user.name),
+              style: Theme.of(context).textTheme.subtitle2),
+        ],
+      ),
+    );
+  }
+}
+
+// Nav Item
+class _NavItem extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  const _NavItem({@required this.title, @required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatButton(
+      onPressed: () {},
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // SizedBox(width: 100.0, height: 100.0, child: RivePerson()),
-            Material(
-              borderRadius: BorderRadius.circular(50.0),
-              elevation: 12,
-              child: SizedBox(width: 100.0, height: 100.0, child: RivePerson()),
+            Icon(icon, color: Colors.white, size: 24.0),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.bodyText1,
             ),
-            Text(context.select((AuthUser user) => user.user.name),
-                style: Theme.of(context).textTheme.headline5),
           ],
         ),
       ),
@@ -79,26 +104,7 @@ class _DrawerHead extends StatelessWidget {
   }
 }
 
-class _DrawerItem extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  const _DrawerItem({@required this.title, @required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white, size: 24.0),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.subtitle1,
-      ),
-      onTap: () {
-        Navigator.pop(context);
-      },
-    );
-  }
-}
-
+// Rive Image
 class RivePerson extends StatefulWidget {
   @override
   _RivePersonState createState() => _RivePersonState();

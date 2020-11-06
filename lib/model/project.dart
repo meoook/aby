@@ -21,23 +21,12 @@ class Projects with ChangeNotifier {
     }
   }
 
-  // Projects setToken(String token) {
-  //   print('Inited projects - setting token $token');
-  //   if (token != null) {
-  //     _token = token;
-  //     print('TOKEN IN PROJECT IS OK $_token');
-  //     _fetchProjects();
-  //   }
-  //   return this;
-  // }
-
   void _fetchProjects() async {
     final response = await http.get(
       '$apiUrlAddress/prj',
-      headers: {
-        HttpHeaders.authorizationHeader: "Token $_token",
-      },
+      headers: {HttpHeaders.authorizationHeader: "Token $_token"},
     );
+    print('get list of projects ${response.statusCode}');
     if (response.statusCode < 300) {
       final parsed = jsonDecode(response.body).cast<Map<String, dynamic>>();
       _projects =

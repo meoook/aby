@@ -38,7 +38,7 @@ class _MyRiveAnimationState extends State<MyRiveAnimation> {
     if (file.import(bytes)) {
       // Select an animation by its name
       setState(() =>
-          _artBoard = file.mainArtboard..addController(SimpleAnimation('go')));
+          _artBoard = file.mainArtboard..addController(SimpleAnimation('aby')));
     }
   }
 

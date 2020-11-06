@@ -1,5 +1,6 @@
 import 'package:aby/model/project.dart';
 import 'package:aby/widgets/drawer.dart';
+import 'package:aby/widgets/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,27 +10,29 @@ class ProjectsListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final projects = context.watch<Projects>().list;
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: Text("Projects"),
       ),
-      drawer: MenuDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: ListView.separated(
-          // addAutomaticKeepAlives: false,
-          itemCount: projects.length,
-          separatorBuilder: (_, __) => Divider(),
-          itemBuilder: (_, index) => _ProjectListItem(project: projects[index]),
-          // children: [
-          //   for (var project in projects)
-          //     ListTile(
-          //       title: Text(project.name),
-          //       subtitle: Text(project.iChars),
-          //       onTap: () => onTapped(project),
-          //     )
-          // ],
-        ),
+      drawer: width <= 600.0 ? MenuDrawer() : null,
+      body: Stack(
+        children: [
+          Container(
+            color: Colors.red,
+            padding: width > 600
+                ? EdgeInsets.only(top: 8.0, left: 80.0)
+                : EdgeInsets.only(top: 8.0),
+            child: ListView.separated(
+              // addAutomaticKeepAlives: false,
+              itemCount: projects.length,
+              separatorBuilder: (_, __) => Divider(),
+              itemBuilder: (_, index) =>
+                  _ProjectListItem(project: projects[index]),
+            ),
+          ),
+          width > 600 ? NavBar() : SizedBox(),
+        ],
       ),
     );
   }
