@@ -1,5 +1,6 @@
 import 'package:aby/model/project.dart';
-import 'package:aby/widgets/drawer.dart';
+import 'package:aby/screens/project.dart';
+import 'package:aby/screens/wrapper.dart';
 import 'package:aby/widgets/navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,24 +8,21 @@ import 'package:provider/provider.dart';
 import '../configs/utils.dart';
 
 class ProjectsListScreen extends StatelessWidget {
+  static const routeName = 'projects';
   @override
   Widget build(BuildContext context) {
     final projects = context.watch<Projects>().list;
     final width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Projects"),
-      ),
-      drawer: width <= 600.0 ? MenuDrawer() : null,
-      body: Stack(
+    return PageSizeWrapper(
+      title: 'Projects',
+      page: Stack(
         children: [
           Container(
-            color: Colors.red,
             padding: width > 600
                 ? EdgeInsets.only(top: 8.0, left: 80.0)
                 : EdgeInsets.only(top: 8.0),
             child: ListView.separated(
-              // addAutomaticKeepAlives: false,
+              shrinkWrap: true,
               itemCount: projects.length,
               separatorBuilder: (_, __) => Divider(),
               itemBuilder: (_, index) =>
@@ -49,7 +47,14 @@ class _ProjectListItem extends StatelessWidget {
     final wrapper = SizedBox(width: itemSize / 2, height: itemSize);
     final double scaleFactor = itemSize / 24;
     return FlatButton(
-      onPressed: () => {Navigator.of(context).pushNamed('/prj/${project.id}')},
+      // onPressed: () => {Navigator.of(context).pushNamed('/prj/${project.id}')},
+      onPressed: () => {
+      Navigator.push(context,
+        MaterialPageRoute(
+        builder: (context) => ProjectDetailsPage(project: project);),
+        ),
+      );
+    },
       child: Container(
         padding: EdgeInsets.symmetric(
             horizontal: itemSize / 2, vertical: itemSize / 2),

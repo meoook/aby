@@ -1,10 +1,13 @@
 import 'package:aby/model/util.dart';
+import 'package:aby/screens/404.dart';
 import 'package:aby/screens/login.dart';
 import 'package:aby/screens/projects.dart';
-import 'package:aby/screens/splash.dart';
+import 'package:aby/screens/starter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'configs/constants.dart';
+import 'configs/theme.dart';
 import 'model/project.dart';
 import 'model/user.dart';
 
@@ -13,12 +16,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  List pages;
-  bool _onPopPage(Route<dynamic> route, dynamic result) {
-    pages.remove(route.settings);
-    return route.didPop(result);
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -33,35 +30,26 @@ class MyApp extends StatelessWidget {
           update: (_, user, __) => Utils(user.token),
         ),
       ],
-      child: Navigator(
-        pages: [],
-        // onUnknownRoute: UnknownScreen(),
-        onPopPage: _onPopPage,
-        // child: MaterialApp(
-        //   title: appTitle,
-        //   theme: applicationThemeDark,
-        //   home: SafeArea(child: AuthOrLogin()),
-        // ),
+      child: MaterialApp(
+        onUnknownRoute: (settings) => MaterialPageRoute(
+          builder: (context) => UnknownScreen(),
+        ),
+        onGenerateRoute: (settings) {
+          if (settings.name == '/login') {
+            return MaterialPageRoute(
+                settings: settings, builder: (context) => LoginScreen());
+          }
+
+          return null;
+        },
+        routes: {
+          ProjectsListScreen.routeName: (context) => ProjectsListScreen(),
+          LoginScreen.routeName: (context) => LoginScreen(),
+        },
+        title: appTitle,
+        theme: applicationThemeDark,
+        home: AuthOrLogin(),
       ),
     );
-  }
-}
-
-class AuthOrLogin extends StatefulWidget {
-  @override
-  _AuthOrLoginState createState() => _AuthOrLoginState();
-}
-
-class _AuthOrLoginState extends State<AuthOrLogin> {
-  @override
-  Widget build(BuildContext context) {
-    final projects = context.watch<Projects>();
-    final languages = context.select<Utils, List>((value) => value.languages);
-    return Consumer<AuthUser>(builder: (context, user, child) {
-      if (user.token == null) return LoginScreen();
-      return (projects.list != null && languages != null)
-          ? ProjectsListScreen()
-          : SplashScreen();
-    });
   }
 }

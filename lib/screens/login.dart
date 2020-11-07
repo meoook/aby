@@ -1,5 +1,4 @@
 import 'package:aby/model/user.dart';
-import 'package:aby/widgets/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,49 +6,24 @@ import 'package:rive/rive.dart';
 
 // Create a Form widget.
 class LoginScreen extends StatelessWidget {
+  static const routeName = 'login';
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: Text("Abyss localize"),
       ),
-      drawer: width < 600.0 ? MenuDrawer() : null,
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Column(
-            children: [
-              Expanded(
-                child: SizedBox(),
-                flex: 1,
-              ),
-              Container(
-                width: 350,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                child: LoginForm(),
-              ),
-              Expanded(
-                child: SizedBox(),
-                flex: 3,
-              ),
-            ],
-          ),
-        ],
-      ),
+      body: _PageLoginForm(),
     );
   }
 }
 
-class LoginForm extends StatefulWidget {
+class _PageLoginForm extends StatefulWidget {
   @override
-  _LoginFormState createState() => _LoginFormState();
+  _PageLoginFormState createState() => _PageLoginFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _PageLoginFormState extends State<_PageLoginForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -74,9 +48,6 @@ class _LoginFormState extends State<LoginForm> {
       context.read<AuthUser>().login(
           username: _usernameController.text,
           password: _passwordController.text);
-      // Provider.of<AuthUser>(context, listen: false).login(
-      //     username: _usernameController.text,
-      //     password: _passwordController.text);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Try to login...')),
       );
@@ -91,88 +62,114 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: <Widget>[
-          SizedBox(
-            height: 200,
-            child: RiveLogo(),
-          ),
-          const SizedBox(height: 60),
-          TextFormField(
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            textInputAction: TextInputAction.next,
-            validator: (name) {
-              Pattern pattern = r'^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$';
-              RegExp regex = new RegExp(pattern);
-              if (!regex.hasMatch(name))
-                return 'Invalid username';
-              else
-                return null;
-            },
-            autofocus: true,
-            // validator: (value) {
-            //   if (value.isEmpty) return 'Username can\'t be empty';
-            //   return null;
-            // },
-            controller: _usernameController,
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.person_outline_rounded),
-              labelText: "Username",
-              errorText: context.select((AuthUser user) => user.error),
-              helperText: "Enter your username or email here",
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Column(
+          children: [
+            Expanded(
+              child: SizedBox(),
+              flex: 1,
             ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            textInputAction: TextInputAction.done,
-            validator: (password) {
-              Pattern pattern = r'^.*$';
-              // r'^(?=.*[0-9]+.*)(?=.*[a-zA-Z]+.*)[0-9a-zA-Z]{6,}$';
-              RegExp regex = new RegExp(pattern);
-              if (!regex.hasMatch(password))
-                return 'Invalid password';
-              else
-                return null;
-            },
-            controller: _passwordController,
-            obscureText: true,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.all(20.0),
-              prefixIcon: Icon(Icons.lock_outline_rounded),
-              labelText: "Password",
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+            Container(
+              width: 350,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    SizedBox(
+                      height: 200,
+                      child: RiveLogo(),
+                    ),
+                    const SizedBox(height: 60),
+                    TextFormField(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      textInputAction: TextInputAction.next,
+                      validator: (name) {
+                        Pattern pattern =
+                            r'^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$';
+                        RegExp regex = new RegExp(pattern);
+                        if (!regex.hasMatch(name))
+                          return 'Invalid username';
+                        else
+                          return null;
+                      },
+                      autofocus: true,
+                      // validator: (value) {
+                      //   if (value.isEmpty) return 'Username can\'t be empty';
+                      //   return null;
+                      // },
+                      controller: _usernameController,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.person_outline_rounded),
+                        labelText: "Username",
+                        errorText:
+                            context.select((AuthUser user) => user.error),
+                        helperText: "Enter your username or email here",
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      textInputAction: TextInputAction.done,
+                      validator: (password) {
+                        Pattern pattern = r'^.*$';
+                        // r'^(?=.*[0-9]+.*)(?=.*[a-zA-Z]+.*)[0-9a-zA-Z]{6,}$';
+                        RegExp regex = new RegExp(pattern);
+                        if (!regex.hasMatch(password))
+                          return 'Invalid password';
+                        else
+                          return null;
+                      },
+                      controller: _passwordController,
+                      obscureText: true,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(20.0),
+                        prefixIcon: Icon(Icons.lock_outline_rounded),
+                        labelText: "Password",
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ButtonBar(
+                      buttonMinWidth: 100.0,
+                      buttonHeight: 40.0,
+                      // buttonPadding: EdgeInsets.all(12.0),
+                      children: [
+                        FlatButton(
+                          child: Text('Forgot password ?'),
+                          onPressed: () => {},
+                          padding: EdgeInsets.all(16.0),
+                        ),
+                        // OutlineButton(
+                        //   child: new Text('Register'),
+                        //   onPressed: () => {},
+                        // ),
+                        RaisedButton(
+                          autofocus: true,
+                          onPressed: _onLogin,
+                          child: Text('Submit'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          ButtonBar(
-            buttonMinWidth: 100.0,
-            buttonHeight: 40.0,
-            // buttonPadding: EdgeInsets.all(12.0),
-            children: [
-              FlatButton(
-                child: Text('Forgot password ?'),
-                onPressed: () => {},
-                padding: EdgeInsets.all(16.0),
-              ),
-              // OutlineButton(
-              //   child: new Text('Register'),
-              //   onPressed: () => {},
-              // ),
-              RaisedButton(
-                autofocus: true,
-                onPressed: _onLogin,
-                child: Text('Submit'),
-              ),
-            ],
-          ),
-        ],
-      ),
+            Expanded(
+              child: SizedBox(),
+              flex: 3,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
