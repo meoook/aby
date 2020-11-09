@@ -5,12 +5,10 @@ import 'package:rive/rive.dart';
 class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF313131),
-      body: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: MyRiveAnimation(),
-      ),
+    return Container(
+      color: Color(0xFF313131),
+      padding: const EdgeInsets.all(32.0),
+      child: MyRiveAnimation(),
     );
   }
 }
@@ -37,8 +35,7 @@ class _MyRiveAnimationState extends State<MyRiveAnimation> {
 
     if (file.import(bytes)) {
       // Select an animation by its name
-      setState(() =>
-          _artBoard = file.mainArtboard..addController(SimpleAnimation('aby')));
+      setState(() => _artBoard = file.mainArtboard..addController(SimpleAnimation('aby')));
     }
   }
 

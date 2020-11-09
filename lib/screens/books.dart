@@ -14,8 +14,7 @@ class BooksApp extends StatefulWidget {
 
 class _BooksAppState extends State<BooksApp> {
   BookRouterDelegate _routerDelegate = BookRouterDelegate();
-  BookRouteInformationParser _routeInformationParser =
-      BookRouteInformationParser();
+  BookRouteInformationParser _routeInformationParser = BookRouteInformationParser();
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +28,7 @@ class _BooksAppState extends State<BooksApp> {
 
 class BookRouteInformationParser extends RouteInformationParser<BookRoutePath> {
   @override
-  Future<BookRoutePath> parseRouteInformation(
-      RouteInformation routeInformation) async {
+  Future<BookRoutePath> parseRouteInformation(RouteInformation routeInformation) async {
     final uri = Uri.parse(routeInformation.location);
 // Handle '/'
     if (uri.pathSegments.length == 0) {
@@ -84,9 +82,7 @@ class BookRouterDelegate extends RouterDelegate<BookRoutePath>
     if (show404) {
       return BookRoutePath.unknown();
     }
-    return _selectedBook == null
-        ? BookRoutePath.home()
-        : BookRoutePath.details(books.indexOf(_selectedBook));
+    return _selectedBook == null ? BookRoutePath.home() : BookRoutePath.details(books.indexOf(_selectedBook));
   }
 
   @override

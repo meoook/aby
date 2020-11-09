@@ -22,15 +22,13 @@ class MenuDrawer extends StatelessWidget {
             // Important: Remove any padding from the ListView.
             padding: EdgeInsets.zero,
             children: <Widget>[
-              _DrawerHead(),
+              // _DrawerHead(),
               Container(
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: navItems.length,
                   itemBuilder: (context, index) {
-                    return _DrawerItem(
-                        title: navItems[index].title,
-                        icon: navItems[index].icon);
+                    return _DrawerItem(title: navItems[index].title, icon: navItems[index].icon);
                   },
                 ),
               ),
@@ -41,9 +39,7 @@ class MenuDrawer extends StatelessWidget {
               shrinkWrap: true,
               itemCount: navItemsDefault.length,
               itemBuilder: (context, index) {
-                return _DrawerItem(
-                    title: navItemsDefault[index].title,
-                    icon: navItemsDefault[index].icon);
+                return _DrawerItem(title: navItemsDefault[index].title, icon: navItemsDefault[index].icon);
               },
             ),
           ),
@@ -58,8 +54,7 @@ class _DrawerHead extends StatelessWidget {
   Widget build(BuildContext context) {
     return DrawerHeader(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: <Color>[Colors.deepOrange, Colors.orangeAccent]),
+        gradient: LinearGradient(colors: <Color>[Colors.deepOrange, Colors.orangeAccent]),
       ),
       child: Container(
         child: Column(
@@ -70,8 +65,7 @@ class _DrawerHead extends StatelessWidget {
               elevation: 12,
               child: SizedBox(width: 100.0, height: 100.0, child: RivePerson()),
             ),
-            Text(context.select((AuthUser user) => user.user.name),
-                style: Theme.of(context).textTheme.headline5),
+            Text(context.select((AuthUser user) => user.user.name), style: Theme.of(context).textTheme.headline5),
           ],
         ),
       ),

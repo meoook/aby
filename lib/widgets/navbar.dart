@@ -1,50 +1,53 @@
-import 'package:aby/model/navigation.dart';
-import 'package:aby/model/user.dart';
+import 'package:aby/model/paths.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:rive/rive.dart' as rive;
 
 class NavBar extends StatelessWidget {
+  final changeNavCfg;
+  final user;
+
+  void navigate(String title) {
+    PathConfig cfg;
+    if (title == 'Add')
+      cfg = PathConfig.add();
+    else if (title == 'Projects')
+      cfg = PathConfig.projects();
+    else
+      cfg = PathConfig.projects();
+    changeNavCfg(cfg);
+  }
+
+  const NavBar({Key key, this.changeNavCfg, this.user}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 80.0,
-      height: double.maxFinite,
+      // height: double.maxFinite,
       color: Theme.of(context).primaryColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ListView(
-            shrinkWrap: true,
-            // Important: Remove any padding from the ListView.
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              _NavBarHead(),
-              Container(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: navItems.length,
-                  itemBuilder: (context, index) {
-                    return _NavItem(
-                        title: navItems[index].title,
-                        icon: navItems[index].icon);
-                  },
-                ),
-              ),
-            ],
-          ),
           Container(
-            child: ListView.builder(
+            child: ListView(
               shrinkWrap: true,
-              itemCount: navItemsDefault.length,
-              itemBuilder: (context, index) {
-                return _NavItem(
-                    title: navItemsDefault[index].title,
-                    icon: navItemsDefault[index].icon);
-              },
+              // Important: Remove any padding from the ListView.
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                _NavBarHead(user: user),
+                _NavItem(title: 'Projects', icon: Icons.apartment, changeNav: navigate),
+                _NavItem(title: 'Add', icon: Icons.apartment, changeNav: navigate)
+              ],
             ),
           ),
+          Container(
+              child: Column(
+            children: [
+              _NavItem(title: 'Settings', icon: Icons.settings, changeNav: navigate),
+              _NavItem(title: 'Sing out', icon: Icons.logout, changeNav: navigate)
+            ],
+          )),
         ],
       ),
     );
@@ -53,13 +56,15 @@ class NavBar extends StatelessWidget {
 
 // Nav Header
 class _NavBarHead extends StatelessWidget {
+  final user;
+
+  const _NavBarHead({Key key, this.user}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: 12.0, bottom: 8.0),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: <Color>[Colors.deepOrange, Colors.orangeAccent]),
+        gradient: LinearGradient(colors: <Color>[Colors.deepOrange, Colors.orangeAccent]),
       ),
       child: Column(
         children: [
@@ -69,8 +74,7 @@ class _NavBarHead extends StatelessWidget {
             child: SizedBox(width: 50.0, height: 50.0, child: RivePerson()),
           ),
           const SizedBox(height: 4.0),
-          Text(context.select((AuthUser user) => user.user.name),
-              style: Theme.of(context).textTheme.subtitle2),
+          Text(user.name, style: Theme.of(context).textTheme.subtitle2),
         ],
       ),
     );
@@ -79,14 +83,17 @@ class _NavBarHead extends StatelessWidget {
 
 // Nav Item
 class _NavItem extends StatelessWidget {
+  final changeNav;
   final String title;
   final IconData icon;
-  const _NavItem({@required this.title, @required this.icon});
+  const _NavItem({@required this.title, @required this.icon, this.changeNav});
 
   @override
   Widget build(BuildContext context) {
     return FlatButton(
-      onPressed: () {},
+      onPressed: () {
+        changeNav(title);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: Column(

@@ -6,17 +6,18 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class Utils with ChangeNotifier {
+class AppStateUtils with ChangeNotifier {
   String _token;
   List<Language> _languages;
   List<Language> get languages => _languages;
 
-  Utils(token) {
-    print('Init utils - setting token $token');
+  AppStateUtils(token) {
     if (token != null) {
       _token = token;
       print('TOKEN IN UTILS IS OK $_token');
       _fetchLanguages();
+    } else {
+      print('NO TOKEN IN UTILS');
     }
   }
   void _fetchLanguages() async {
@@ -27,10 +28,9 @@ class Utils with ChangeNotifier {
     print('get list of languages ${response.statusCode}');
     if (response.statusCode < 300) {
       final parsed = jsonDecode(response.body).cast<Map<String, dynamic>>();
-      _languages =
-          parsed.map<Language>((json) => Language.fromJson(json)).toList();
+      _languages = parsed.map<Language>((json) => Language.fromJson(json)).toList();
       print('Languages get ${_languages.length} amount');
-      notifyListeners();
+      notifyListeners(); // TODO Need it here ?
     }
   }
 
@@ -52,7 +52,6 @@ class Language {
   });
 
   factory Language.fromJson(Map<String, dynamic> json) {
-    print('Language loaded');
     return Language(
       id: json['save_id'],
       name: json['name'],

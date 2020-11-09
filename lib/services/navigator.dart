@@ -1,72 +1,45 @@
+import 'package:aby/model/paths.dart';
 import 'package:aby/model/project.dart';
+import 'package:aby/model/user.dart';
+import 'package:aby/model/util.dart';
 import 'package:aby/screens/404.dart';
+import 'package:aby/screens/add.dart';
+import 'package:aby/screens/login.dart';
 import 'package:aby/screens/project.dart';
 import 'package:aby/screens/projects.dart';
+import 'package:aby/widgets/drawer.dart';
+import 'package:aby/widgets/navbar.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-// class ProjectDetailPage extends Page {
-//   final WidgetBuilder builder;
-//   const ProjectDetailPage({@required this.builder, String name, Key key})
-//       : super(key: key, name: name);
-//
-//   @overrider
-//   Route createRoute(BuildContext context) {
-//     return MaterialPageRoute(settings: this, builder: builder);
-//   }
-// }
-
-// class BooksApp extends StatefulWidget {
-//   @override
-//   State<StatefulWidget> createState() => _BooksAppState();
-// }
-//
-// class _BooksAppState extends State<BooksApp> {
-//   BookRouterDelegate _routerDelegate = BookRouterDelegate();
-//   AbyRouteInfoParser _routeInformationParser = AbyRouteInfoParser();
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp.router(
-//       title: 'Abyss localize',
-//       routerDelegate: _routerDelegate,
-//       routeInformationParser: _routeInformationParser,
-//     );
-//   }
-// }
-
-class AbyRouteInfoParser extends RouteInformationParser<AbyRoutePath> {
+class AbyRouteInfoParser extends RouteInformationParser<PathConfig> {
   @override
-  Future<AbyRoutePath> parseRouteInformation(
-      RouteInformation routeInformation) async {
+  Future<PathConfig> parseRouteInformation(RouteInformation routeInformation) async {
     final uri = Uri.parse(routeInformation.location);
     final segments = uri.pathSegments;
     final sAmount = uri.pathSegments.length;
     // '/'
-    if (sAmount == 0) return AbyRoutePath.prjList();
+    if (sAmount == 0) return PathConfig.projects();
     // /oauth, /login, /add
     if (sAmount == 1) {
-      if (segments[0] == 'add') return AbyRoutePath.add();
-      if (segments[0] == 'login') return AbyRoutePath.login();
+      if (segments[0] == 'add') return PathConfig.add();
+      if (segments[0] == 'login') return PathConfig.login();
     }
     // /prj/*
-    if (segments[0] == 'prj' && sAmount >= 3) {
-      if (segments[2] == 'permissions')
-        return AbyRoutePath.prjPerms(segments[1]);
-      if (segments[2] == 'settings')
-        return AbyRoutePath.prjSettings(segments[1]);
+    if (segments[0] == 'projects' && sAmount >= 3) {
+      var prjId = segments[1];
+      if (segments[2] == 'permissions') return PathConfig.permissions(prjId);
+      if (segments[2] == 'settings') return PathConfig.options(prjId);
       if (segments[2] == 'folder' && sAmount >= 4) {
         var folderId = int.tryParse(segments[3]);
         if (folderId != null) {
-          if (sAmount == 4) return AbyRoutePath.folder(segments[1], folderId);
+          if (sAmount == 4) return PathConfig.files(prjId, folderId);
           if (sAmount >= 5) {
-            if (segments[4] == 'settings')
-              return AbyRoutePath.folderDetail(segments[1], folderId);
+            if (segments[4] == 'settings') return PathConfig.folder(prjId, folderId);
             var fileId = int.tryParse(segments[4]);
             if (fileId != null) {
-              if (sAmount == 5)
-                return AbyRoutePath.file(segments[1], folderId, fileId);
-              if (sAmount == 6)
-                return AbyRoutePath.fileDetail(segments[1], folderId, fileId);
+              if (sAmount == 5) return PathConfig.files(prjId, folderId);
+              if (sAmount == 6) return PathConfig.file(prjId, folderId, fileId); // settings
             }
           }
         }
@@ -79,242 +52,216 @@ class AbyRouteInfoParser extends RouteInformationParser<AbyRoutePath> {
         // if (sAmount == 2) return AbyRoutePath.translate(fileId);
         // if (segments[2] == 'settings') return AbyRoutePath.translate(fileId);
       }
-
-      if (segments[2] == 'permissions')
-        return AbyRoutePath.prjPerms(segments[1]);
-      if (segments[2] == 'settings')
-        return AbyRoutePath.prjSettings(segments[1]);
-      if (segments[2] == 'folder' && sAmount >= 4) {
-        var folderId = int.tryParse(segments[3]);
-        if (folderId != null) {
-          if (sAmount == 4) return AbyRoutePath.folder(segments[1], folderId);
-          if (sAmount >= 5) {
-            if (segments[4] == 'settings')
-              return AbyRoutePath.folderDetail(segments[1], folderId);
-            var fileId = int.tryParse(segments[4]);
-            if (fileId != null) {
-              if (sAmount == 5)
-                return AbyRoutePath.file(segments[1], folderId, fileId);
-              if (sAmount == 6)
-                return AbyRoutePath.fileDetail(segments[1], folderId, fileId);
-            }
-          }
-        }
-      }
     }
     // unknown routes
-    return AbyRoutePath.unknown();
+    return PathConfig.unknown();
   }
 
   @override
-  RouteInformation restoreRouteInformation(AbyRoutePath path) {
-    if (path.isUnknown) {
-      return RouteInformation(location: '/404');
-    }
-    if (path.root == 'login') {
-      return RouteInformation(location: '/login');
-    }
-    if (path.root == 'add') {
-      return RouteInformation(location: '/add');
-    }
-    if (path.root == null) {
-      return RouteInformation(location: '/prj');
-    }
-    if (path.root == 'prj') {
-      return RouteInformation(location: '/prj/${path.id}');
-    }
-    return null;
+  RouteInformation restoreRouteInformation(PathConfig pathConfig) {
+    // print('PATH CONFIG IS ${pathConfig.currentPath}');
+    return RouteInformation(location: pathConfig.currentPath);
   }
 }
 
-class BookRouterDelegate extends RouterDelegate<AbyRoutePath>
-    with ChangeNotifier, PopNavigatorRouterDelegateMixin<AbyRoutePath> {
-  final GlobalKey<NavigatorState> navigatorKey;
+class AbyRouterDelegate extends RouterDelegate<PathConfig>
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin<PathConfig> {
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  final AuthUser _appUser;
+  PathConfig _config = PathConfig.unknown();
 
-  Project _selectedProject;
-  bool show404 = false;
-
-  List<Project> projects = [
-    Project('Stranger in a Strange Land', 'Robert A. Heinlein'),
-    Project('Foundation', 'Isaac Asimov'),
-    Project('Fahrenheit 451', 'Ray Bradbury'),
-  ];
-
-  BookRouterDelegate() : navigatorKey = GlobalKey<NavigatorState>();
-
-  AbyRoutePath get currentConfiguration {
-    if (show404) {
-      return AbyRoutePath.unknown();
-    }
-    return _selectedProject == null
-        ? AbyRoutePath.home()
-        : AbyRoutePath.details(projects.indexOf(_selectedProject));
+  AbyRouterDelegate(this._appUser) {
+    _appUser.addListener(notifyListeners);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      pages: [
-        MaterialPage(
-          key: ValueKey('BooksListPage'),
-          child: ProjectsListScreen(),
-        ),
-        if (show404)
-          MaterialPage(key: ValueKey('UnknownPage'), child: UnknownScreen())
-        else if (_selectedProject != null)
-          ProjectDetailsPage(project: _selectedProject)
-      ],
-      onPopPage: (route, result) {
-        if (!route.didPop(result)) {
-          return false;
-        }
+  PathConfig get currentConfiguration {
+    print('CURRENT CONFIG IS ! ! ! ${_config.currentPath}');
+    return _appUser.user != null ? _config : PathConfig.login();
+  }
 
-        // Update the list of pages by setting _selectedBook to null
-        _selectedProject = null;
-        show404 = false;
-        notifyListeners();
+  @override
+  Future<void> setNewRoutePath(PathConfig pathConfig) async {
+    // print('CHANGING PATH FROM URL ! ! ! ${pathConfig.currentPath}');
+    if (_appUser.isAuth) {}
+    _config = _appUser.isAuth ? pathConfig : PathConfig.login();
+    notifyListeners();
+  }
 
-        return true;
-      },
+  Future<void> changeNavPath(PathConfig newPathCfg) async {
+    // print('NEW PATH FROM STATE ! ! ! ${newPathCfg.currentPath}');
+    _config = newPathCfg;
+    notifyListeners();
+  }
+
+  List<Page> get _pages {
+    List<Page> pages = [
+      if (_appUser.isAuth)
+        buildPage(ProjectsListScreen(changePageCfg: changeNavPath), ValueKey('projects'), title: 'Projects')
+      else
+        MaterialPage(key: ValueKey('login'), child: LoginScreen(appUserLogin: _appUser.login))
+    ];
+    if (_appUser.isAuth) {
+      if (_config.isSettings) pages.add(buildPage(UnknownScreen(), ValueKey('settings')));
+      if (_config.isAdd) pages.add(buildPage(AddProjectScreen(), ValueKey('add'), title: 'Add project'));
+      if (_config.isProject) pages.add(buildPage(ProjectDetailsScreen(prjId: _config.prjId), ValueKey('settings')));
+    }
+    // print('PAGES STACK ${pages.length}');
+    return pages;
+  }
+
+  Page buildPage(Widget widget, Key key, {String title}) {
+    var _title = title != null ? title : 'Abyss localize';
+    return MaterialPage(
+      key: key,
+      child: _PageSizeWrapper(
+        page: widget,
+        changePageCfg: changeNavPath,
+        title: _title,
+        user: _appUser.user,
+      ),
     );
   }
 
   @override
-  Future<void> setNewRoutePath(AbyRoutePath path) async {
-    if (path.isUnknown) {
-      _selectedProject = null;
-      show404 = true;
-      return;
-    }
-
-    if (path.isDetailsPage) {
-      if (path.id < 0 || path.id > projects.length - 1) {
-        show404 = true;
-        return;
-      }
-
-      _selectedProject = projects[path.id];
-    } else {
-      _selectedProject = null;
-    }
-
-    show404 = false;
-  }
-
-  void _handleBookTapped(Project book) {
-    _selectedProject = book;
-    notifyListeners();
+  Widget build(BuildContext context) {
+    // if (context.watch<AuthUser>().user != null) setNewRoutePath(PathConfig.projects());
+    return Navigator(
+      key: navigatorKey,
+      pages: _pages,
+      onPopPage: (route, result) {
+        if (!route.didPop(result)) {
+          return false;
+        }
+        _config = _config.popPathCfg();
+        // print('POPED CONFIG PATH ARE ${_config.currentPath}');
+        // Update the list of pages by setting _selectedBook to null
+        notifyListeners();
+        return true;
+      },
+    );
   }
 }
 
-class AbyRoutePath {
-  // oauth
-  // login
-  // add
-  // / => prj list
-  // prj/:save_id/permissions
-  // prj/:save_id/settings
-  // prj/:save_id/folder/:folder_id/
-  // prj/:save_id/folder/:folder_id/settings
-  // prj/:save_id/folder/:folder_id/:file_id    mb -page ?
-  // prj/:save_id/folder/:folder_id/:file_id/settings  - not set
-  // translate/:file_id
-  // translate/:file_id/:translate_id    mb -page ?
-  // translate/:file_id/:search results ?
+// Page loginPage(loginFn) {
+//   return MaterialPage(key: ValueKey('login'), child: LoginScreen(appUserLogin: loginFn));
+// }
 
-  final String root;
-  final String prjId;
-  final String option;
-  final int folderId;
-  final int fileId;
-  final bool isDetail;
-  final bool isUnknown;
+class _PageSizeWrapper extends StatelessWidget {
+  final changePageCfg;
+  final user;
+  final Widget page;
+  final String title;
+  const _PageSizeWrapper({Key key, this.page, this.title = 'Abyss localize', this.changePageCfg, this.user})
+      : super(key: key);
 
-  AbyRoutePath.login()
-      : root = 'login',
-        prjId = null,
-        option = null,
-        folderId = null,
-        fileId = null,
-        isDetail = false,
-        isUnknown = false;
-
-  AbyRoutePath.add()
-      : root = 'add',
-        prjId = null,
-        option = null,
-        folderId = null,
-        fileId = null,
-        isDetail = false,
-        isUnknown = false;
-
-  AbyRoutePath.prjList()
-      : root = null,
-        prjId = null,
-        option = null,
-        folderId = null,
-        fileId = null,
-        isDetail = false,
-        isUnknown = false;
-
-  AbyRoutePath.prjPerms(this.prjId)
-      : root = 'prj',
-        option = 'permissions',
-        folderId = null,
-        fileId = null,
-        isDetail = false,
-        // true if all settings in detail
-        isUnknown = false;
-
-  AbyRoutePath.prjSettings(this.prjId)
-      : root = 'prj',
-        option = 'settings',
-        folderId = null,
-        fileId = null,
-        isDetail = false,
-        isUnknown = false;
-
-  AbyRoutePath.folder(this.prjId, this.folderId)
-      : root = 'prj',
-        option = 'folder',
-        fileId = null,
-        isDetail = false,
-        isUnknown = false;
-
-  AbyRoutePath.folderDetail(this.prjId, this.folderId)
-      : root = 'prj',
-        option = 'folder',
-        fileId = null,
-        isDetail = true,
-        isUnknown = false;
-
-  AbyRoutePath.file(this.prjId, this.folderId, this.fileId)
-      : root = 'prj',
-        option = 'folder',
-        isDetail = false,
-        isUnknown = false;
-
-  AbyRoutePath.fileDetail(this.prjId, this.folderId, this.fileId)
-      : root = 'prj',
-        option = 'folder',
-        isDetail = true,
-        isUnknown = false;
-
-  AbyRoutePath.translate(this.fileId)
-      : root = 'translate',
-        prjId = null,
-        option = null,
-        folderId = null,
-        isDetail = false,
-        isUnknown = true;
-
-  AbyRoutePath.unknown()
-      : root = null,
-        prjId = null,
-        option = null,
-        folderId = null,
-        fileId = null,
-        isDetail = false,
-        isUnknown = true;
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    // return Consumer<AuthUser>(builder: (context, user, child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Projects>(create: (BuildContext context) => Projects(user.token)),
+        ChangeNotifierProvider<AppStateUtils>(create: (BuildContext context) => AppStateUtils(user.token)),
+      ],
+      child: SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(title),
+            // leading: IconButton(
+            //   icon: Icon(Icons.arrow_back),
+            //   onPressed: () => Navigator.pop(context),
+            // ),
+          ),
+          drawer: title == 'Projects' && width <= 600.0 ? MenuDrawer() : null,
+          body: Container(
+            child: Stack(
+              // mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  padding: width > 600 ? EdgeInsets.only(left: 80.0) : EdgeInsets.all(0.0),
+                  child: page,
+                ),
+                width > 600 ? NavBar(changeNavCfg: changePageCfg, user: user) : SizedBox(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    //   child: MaterialApp.router(
+    //     title: appTitle,
+    //     theme: applicationThemeDark,
+    //     routeInformationParser: _routeParser,
+    //     routerDelegate: _routerDelegate,
+    //   ),
+    // );
+    // return SafeArea(
+    //   child: Scaffold(
+    //     appBar: AppBar(
+    //       title: Text(title),
+    //       // leading: IconButton(
+    //       //   icon: Icon(Icons.arrow_back),
+    //       //   onPressed: () => Navigator.pop(context),
+    //       // ),
+    //     ),
+    //     drawer: title == 'Projects' && width <= 600.0 ? MenuDrawer() : null,
+    //     body: Container(
+    //       child: Stack(
+    //         children: [
+    //           page,
+    //           width > 600 ? NavBar(changeNavCfg: changePageCfg, user: user) : SizedBox(),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
+  }
 }
+//
+// class PageAuthWrapper extends Page {
+//   final PathConfig config;
+//   PageAuthWrapper({this.config}) : super(key: ValueKey(config));
+//
+//   Route createRoute(BuildContext context) {
+//     final width = MediaQuery.of(context).size.width;
+//     final projects = context.watch<Projects>();
+//     final languages = context.select<Utils, List>((value) => value.languages);
+//     if (user.token == null) => MaterialPageRoute(
+//       settings: this, builder: (BuildContext context)
+//     )
+//     return MaterialPageRoute(
+//       settings: this,
+//       builder: (BuildContext context) {
+//         return screen;
+//       },
+//     );
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final width = MediaQuery.of(context).size.width;
+//     final projects = context.watch<Projects>();
+//     final languages = context.select<Utils, List>((value) => value.languages);
+//     return Consumer<AuthUser>(builder: (context, user, child) {
+//       if (user.token == null) {
+//         Navigator.pushNamed(context, '/login');
+//         return null;
+//       }
+//       return SafeArea(
+//         child: Scaffold(
+//           appBar: AppBar(
+//             title: Text(title),
+//           ),
+//           drawer: width <= 600.0 ? MenuDrawer() : null,
+//           body: Stack(
+//             children: [
+//               projects.list != null && languages != null ? page : SplashScreen(),
+//               width > 600 ? NavBar() : SizedBox(),
+//             ],
+//           ),
+//         ),
+//       );
+//     });
+//   }
+// }

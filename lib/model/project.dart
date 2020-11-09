@@ -8,9 +8,24 @@ import 'package:http/http.dart' as http;
 
 class Projects with ChangeNotifier {
   String _token;
+  String get token => _token;
   List<Project> _projects;
 
   List<Project> get list => _projects;
+
+  Future<List<Project>> get refreshList async {
+    if (_projects != null) return _projects; // No need to refresh projects each time
+    final response = await http.get(
+      '$apiUrlAddress/prj',
+      headers: {HttpHeaders.authorizationHeader: "Token $_token"},
+    );
+    print('get list of projects ${response.statusCode}');
+    if (response.statusCode < 300) {
+      final parsed = jsonDecode(response.body).cast<Map<String, dynamic>>();
+      _projects = parsed.map<Project>((json) => Project.fromJson(json)).toList();
+    }
+    return _projects;
+  }
 
   Projects(token) {
     print('Inited projects - setting token $token');
@@ -29,8 +44,7 @@ class Projects with ChangeNotifier {
     print('get list of projects ${response.statusCode}');
     if (response.statusCode < 300) {
       final parsed = jsonDecode(response.body).cast<Map<String, dynamic>>();
-      _projects =
-          parsed.map<Project>((json) => Project.fromJson(json)).toList();
+      _projects = parsed.map<Project>((json) => Project.fromJson(json)).toList();
       print('Projects get ${_projects.length} amount');
       notifyListeners();
     }
@@ -60,9 +74,9 @@ class Project {
   factory Project.fromJson(Map<String, dynamic> json) {
     print('New project loaded ${json.keys.toString()}');
     // [ for (var key_name in json.keys ) print(key_name)];
-    json.keys.forEach((element) {
-      print('$element ${json[element]}');
-    });
+    // json.keys.forEach((element) {
+    //   print('$element ${json[element]}');
+    // });
     return Project(
       id: json['save_id'],
       name: json['name'],

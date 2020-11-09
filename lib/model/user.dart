@@ -31,6 +31,8 @@ class AuthUser with ChangeNotifier {
   String _token;
   String get token => _token;
 
+  bool get isAuth => user != null;
+
   AuthUser() {
     print('INITING AUTH USER');
     _authWithStorageToken();
@@ -44,7 +46,8 @@ class AuthUser with ChangeNotifier {
         if (value.isNotEmpty) {
           print('AUTH');
           _token = value;
-          _auth();
+          await _auth();
+          notifyListeners();
         }
       } else {
         print('Can\'t get - not allowed platform');
@@ -52,7 +55,7 @@ class AuthUser with ChangeNotifier {
     }
   }
 
-  void _auth() async {
+  Future<void> _auth() async {
     if (_token != null) return;
     print('Try to auth with $_token');
     _error = null;
@@ -64,7 +67,6 @@ class AuthUser with ChangeNotifier {
       await _userCreate(response);
     else
       await _userDestroy();
-    notifyListeners();
   }
 
   void login({String username, String password}) async {
@@ -107,15 +109,13 @@ class AuthUser with ChangeNotifier {
     final responseJson = jsonDecode(resp.body);
     _appUser = _AppUser.fromJson(responseJson);
     _token = _appUser.token;
-    if (_allowedPlatform)
-      await _secureStorage.write(key: 'abyssLocalizeToken', value: _token);
+    if (_allowedPlatform) await _secureStorage.write(key: 'abyssLocalizeToken', value: _token);
   }
 
   Future<void> _userDestroy() async {
     _appUser = null;
     _token = '';
-    if (_allowedPlatform)
-      await _secureStorage.delete(key: 'abyssLocalizeToken');
+    if (_allowedPlatform) await _secureStorage.delete(key: 'abyssLocalizeToken');
   }
 }
 
